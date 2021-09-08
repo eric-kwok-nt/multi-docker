@@ -1,0 +1,29 @@
+sudo: required
+language: generic 
+services: 
+  - docker
+
+before_install:
+  - docker build -t xholyspirit/react-test -f ./client/Dockerfile.dev ./client
+  # - docker build my_other_project
+  # Still need to specify the build context, and in this case, it will be the nested folder "client"
+
+# Primary test running section
+script:
+  # - docker run my_other_project runmytest
+  - docker run -e CI=true xholyspirit/react-test npm test -- --coverage
+
+after_success:
+  - docker build -t xholyspirit/multi-client ./client
+  - docker build -t xholyspirit/multi-nginx ./nginx
+  - docker build -t xholyspirit/multi-server ./server
+  - docker build -t xholyspirit/multi-worker ./worker
+  
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+  # Need to login to the docker CLI
+
+  - docker push xholyspirit/multi-client 
+  - docker push xholyspirit/multi-nginx
+  - docker push xholyspirit/multi-server 
+  - docker push xholyspirit/multi-worker 
+  # Take these images and push them onto docker hub
