@@ -27,3 +27,29 @@ after_success:
   - docker push xholyspirit/multi-server 
   - docker push xholyspirit/multi-worker 
   # Take these images and push them onto docker hub
+
+deploy:
+  provider: elasticbeanstalk
+  # Travis CI comes pre-configured to deploy the application to a handful of different providers (AWS, Digital Ocean etc.)
+  
+  # Next, provide other options for further customization
+  region: "us-east-2" # Th region setting where the app was created
+  app: "multi-docker" # App name
+  env: "MultiDocker-env" # Environment name
+  bucket_name: "elasticbeanstalk-us-east-2-148347536296"
+  # When Travis decides to deploy the code base, it is going to take all of the files inside of the github repository, zip them all 
+  # up ito a single file and it is going to copy all of them over to an S3 bucket, which is essentially a hard drive running on AWS.
+  # Once it copies all the files over, it is essentially going to inform Elastic beanstalk about the uploaded file for application 
+  # redeployment. So in this step, we just need to find the S3 bucket that has already been created in the elastic beanstalk instance 
+  bucket_path: "docker-multi"
+
+  # Next we want to make sure that it does not automatically deploy our code when with push inot the feature branch, but rather only
+  # deploy when the master branch gets somew new code (merge pull request)
+  on:
+    branch: master
+
+  # The last thing is to add in a set of API keys to allow Travis CI to have access to our AWS account
+  # DO NOT put the access keys directly in here as it will be push onto the public repository. Use a feature of environment secrets 
+  # provided by Travis CI
+  access_key_id: $AWS_ACCESS_KEY
+  secret_access_key: $AWS_SECRET_KEY
